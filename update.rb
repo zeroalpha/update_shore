@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-#require 'pry'
-
 unless %w{-i -u}.index(ARGV[0]) && ARGV[1]
   puts "update_shore.rb <action> <folder> [playlist_name]"
   puts "-i  Initialize Folder"
