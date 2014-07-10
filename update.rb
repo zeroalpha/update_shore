@@ -1,17 +1,51 @@
 #!/usr/bin/env ruby
 
-unless %w{-i -u}.index(ARGV[0]) && ARGV[1]
-  puts "update_shore.rb <action> <folder> [playlist_name]"
-  puts "-i  Initialize Folder"
-  puts "-u  Update Folder"
-  exit
+require 'optparse'
+require 'pp'
+require 'pry'
+
+NUMBER_RX = /\-\-(\d+)\-\-/
+
+options = {
+  verbose: false,
+  playlist_file: "1AAList.m3u8",
+  playlist_url: "http://www.youtube.com/watch?list=PLpr-NGsAGodEbDePSO3wivni39lgdLQjW",
+  action: :update
+}
+OptionParser.new do |opts|
+  opts.banner = "Usage: example.rb [options]"
+
+  opts.on("-d","--directory DIRECTORY", "Specify a Download Directory") do |d|
+    options[:dir] = d
+  end
+
+  opts.on("-f", "--playlist-file", "Specify a name for the *.m3u file") do |f|
+    options[:playlist_file] = f
+  end
+
+  opts.on("-pl", "--playlist-url", "Specify a Playlist to download") do |pl|
+    options[:playlist_url] = pl
+  end
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+end.parse!
+
+pp options
+pp ARGV
+
+if options[:dir] then
+  Dir.chdir options[:dir]
+else
+  puts "Need a directory"
+  exit 1
 end
 
-Dir.chdir ARGV[1]
-
-PLAYLIST_FILE = ARGV[2] || "1AAList.m3u8"
-NUMBER_RX = /\-\-(\d+)\-\-/
-PLAYLIST = "http://www.youtube.com/watch?list=PLpr-NGsAGodEbDePSO3wivni39lgdLQjW"
+possible_playlist_files = Dir.glob "*.m3u*"
+if possible_playlist_files.size > 0
+  PLAYLIST_FILE = possible_playlist_files[0]
+end
 
 #Reading Playlist to enable continuing from the end of the list
 num = "nothing"
@@ -29,12 +63,12 @@ if File.exists? PLAYLIST_FILE then
 end
 
 
-command = case ARGV[0]
-          when "-i"
-            "youtube-dl -f 18 -o \"%(title)s--%(playlist_index)s--%(id)s.%(ext)s\"  #{PLAYLIST}"
-          when "-u"
+command = case options[:action]
+          when :init
+            "youtube-dl -f 18 -o \"%(title)s--%(playlist_index)s--%(id)s.%(ext)s\"  #{options[:playlist_url]}"
+          when :update
             puts "No Playlist found" and exit if num == "nothing"
-            "youtube-dl -f 18 --playlist-start #{num} -o \"%(title)s--%(playlist_index)s--%(id)s.%(ext)s\"  #{PLAYLIST}"
+            "youtube-dl -f 18 --playlist-start #{num} -o \"%(title)s--%(playlist_index)s--%(id)s.%(ext)s\"  #{options[:playlist_url]}"
           else
             puts "Action needs to be -u or -i"
             exit
