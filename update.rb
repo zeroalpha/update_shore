@@ -10,21 +10,31 @@ options = {
   verbose: false,
   playlist_file: "1AAList.m3u8",
   playlist_url: "http://www.youtube.com/watch?list=PLpr-NGsAGodEbDePSO3wivni39lgdLQjW",
-  action: :update
+  action: :update,
+  playlist_index_start: nil,
+  playlist_index_stop: nil
 }
 OptionParser.new do |opts|
   opts.banner = "Usage: example.rb [options]"
 
-  opts.on("-d","--directory DIRECTORY", "Specify a Download Directory") do |d|
+  opts.on("-d DIRECTORY","--directory DIRECTORY", "Specify a Download Directory") do |d|
     options[:dir] = d
   end
 
-  opts.on("-f", "--playlist-file", "Specify a name for the *.m3u file") do |f|
+  opts.on("-f NAME", "--playlist-file NAME", "Specify a NAME for the *.m3u file") do |f|
     options[:playlist_file] = f
   end
 
-  opts.on("-pl", "--playlist-url", "Specify a Playlist to download") do |pl|
+  opts.on("-pl PLAYLIST", "--playlist-url PLAYLIST", "Specify a PLAYLIST to download") do |pl|
     options[:playlist_url] = pl
+  end
+
+  opts.on("--pl-start INDEX",Fixnum, "Begin downloading of the playlist at the specified INDEX") do |pl_start|
+    options[:playlist_index_start] = pl_start
+  end
+
+  opts.on("--pl-stop INDEX",Fixnum, "End downloading of the playlist at the specified INDEX") do |pl_stop|
+    options[:playlist_index_stop] = pl_stop
   end
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
@@ -32,8 +42,10 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-pp options
-pp ARGV
+if options[:verbose]
+  pp options
+  pp ARGV
+end
 
 if options[:dir] then
   Dir.chdir options[:dir]
@@ -60,8 +72,12 @@ if File.exists? PLAYLIST_FILE then
     end
   end
   puts "Found #{num}"
+else
+  options[:action] = :init
+  puts "No Playlist found"
 end
 
+PLAYLIST_FILE = options[:playlist_file] unless options[:playlist_file] == "1AAList.m3u8"
 
 command = case options[:action]
           when :init
@@ -95,7 +111,7 @@ end
 files.delete nil
 files.sort_by!{|f| f[0].to_i}
 
-puts "Creating playlist"
+puts "Creating playlist #{PLAYLIST_FILE}"
 s = ""
 #binding.pry
 files.each do |f|
