@@ -29,17 +29,18 @@ OptionParser.new do |opts|
     options[:playlist_url] = pl
   end
 
-  opts.on("--pl-start INDEX",Fixnum, "Begin downloading of the playlist at the specified INDEX") do |pl_start|
+  opts.on("--pl-start INDEX",Integer, "Begin downloading of the playlist at the specified INDEX") do |pl_start|
     options[:playlist_index_start] = pl_start
   end
 
-  opts.on("--pl-stop INDEX",Fixnum, "End downloading of the playlist at the specified INDEX") do |pl_stop|
+  opts.on("--pl-stop INDEX",Integer, "End downloading of the playlist at the specified INDEX") do |pl_stop|
     options[:playlist_index_stop] = pl_stop
   end
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     options[:verbose] = v
   end
+
 end.parse!
 
 if options[:verbose]
